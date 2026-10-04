@@ -1,0 +1,30 @@
+name: 毎朝のデータ更新
+on:
+  schedule:
+    - cron: "52 20 * * *"   # 日本時間 毎朝5:52
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: ガチャ情報を取得
+        run: python scripts/scrape.py
+      - name: 承認済みの報告を取り込む
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: python scripts/notion.py
+      - name: ページを作る
+        run: python scripts/build.py
+      - name: 変更を保存
+        run: |
+          git config user.name "gacha-wiki-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "データ更新 $(date -u +%F)"
+          git push
