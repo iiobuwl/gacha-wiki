@@ -1,11 +1,20 @@
 # 承認済みのユーザー報告をNotionから取り込む（NOTION_TOKEN が無ければ何もしない）
-import os,json,urllib.request,datetime
+import os,json,urllib.request,urllib.error,datetime
 TOKEN=os.environ.get("NOTION_TOKEN","").strip()
 DS="9b3b56fb6b8e421690c61aaea633ef04"  # データベースID（2022-06-28 版APIで使う）
 H={"Authorization":"Bearer "+TOKEN,"Notion-Version":"2022-06-28","Content-Type":"application/json"}
-def req(method,url,body=None):
-    r=urllib.request.Request(url,data=json.dumps(body).encode() if body is not None else None,headers=H,method=method)
-    return json.load(urllib.request.urlopen(r,timeout=30))
+def req(method,url,body=None,ver="2022-06-28"):
+    h=dict(H);h["Notion-Version"]=ver
+    r=urllib.request.Request(url,data=json.dumps(body).encode() if body is not None else None,headers=h,method=method)
+    try:return json.load(urllib.request.urlopen(r,timeout=30))
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"{e.code} {url} {e.read().decode('utf8','ignore')[:300]}")
+DSRC="ca2950f2-0d99-47d5-8b76-dd2186285030"
+def query(body):
+    try:return req("POST",f"https://api.notion.com/v1/databases/{DS}/query",body)
+    except RuntimeError as e:
+        print("databases/query 失敗:",e)
+        return req("POST",f"https://api.notion.com/v1/data_sources/{DSRC}/query",body,ver="2025-09-03")
 def txt(p):
     if not p:return ""
     arr=p.get("rich_text") or p.get("title") or []
@@ -16,7 +25,7 @@ def main():
     while True:
         body={"filter":{"or":[{"property":"ステータス","select":{"equals":"承認"}},{"property":"ステータス","select":{"equals":"掲載済み"}}]},"page_size":100}
         if cur:body["start_cursor"]=cur
-        r=req("POST",f"https://api.notion.com/v1/databases/{DS}/query",body)
+        r=query(body)
         rows+=r["results"]
         if not r.get("has_more"):break
         cur=r["next_cursor"]
