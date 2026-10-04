@@ -324,7 +324,7 @@ footer{border-top:1px solid var(--line)}
 <div id="list"></div>
 </main>
 <footer>
-<span>情報源：<a href="https://gashapon.jp/schedule/" target="_blank" rel="noopener">ガシャポンオフィシャルサイト</a>・<a href="https://www.takaratomy-arts.co.jp/items/gacha/calendar/" target="_blank" rel="noopener">タカラトミーアーツ</a>・<a href="https://kitan.jp/product_category/newproduct/" target="_blank" rel="noopener">キタンクラブ</a>・<a href="https://gacha-island.jp/gacha-release-schedule/" target="_blank" rel="noopener">ガチャガチャアイランド</a>・<a href="https://gachanavi.com" target="_blank" rel="noopener">ガチャナビ</a>・<a href="https://gachapara.jp/gachagacha-new/" target="_blank" rel="noopener">ガチャパラ</a></span>
+<span>情報源：<a href="https://gashapon.jp/schedule/" target="_blank" rel="noopener">ガシャポンオフィシャルサイト</a>・<a href="https://www.takaratomy-arts.co.jp/items/gacha/calendar/" target="_blank" rel="noopener">タカラトミーアーツ</a>・<a href="https://kitan.jp/product_category/newproduct/" target="_blank" rel="noopener">キタンクラブ</a>・<a href="https://gachanavi.com" target="_blank" rel="noopener">ガチャナビ</a>・<a href="https://gachapara.jp/gachagacha-new/" target="_blank" rel="noopener">ガチャパラ</a></span>
 <span>データ更新：<b id="updated">__DATE__</b>（毎朝自動更新）。ガチャパラは記事中心で発売日一覧がないため未掲載。発売時期は店舗により前後します。</span>
 <span>商品画像の著作権は各メーカー・権利者に帰属するため、当サイトでは掲載していません。商品の画像は「詳細を見る」から各公式ページでご覧ください。お気に入り・ゲットはこのブラウザにのみ保存されます。</span>
 </footer>
@@ -380,7 +380,7 @@ function recommend(){const byK=Object.fromEntries(ITEMS.map(x=>[wkey(x),x]));
 const wkey=x=>x.src+"|"+x.name;let wish=new Set(load("gacha-wish",[]));let wishSel=new Set();
 let selCats=new Set(),tab=load("gacha-tab","all");if(tab=="rec")tab="all";
 $("#period").innerHTML='<option value="">すべて</option><option value="up">今月以降に発売</option>'+PERIODS.map(([k,d])=>`<option value="${k}">${d}</option>`).join("");
-$("#maker").innerHTML='<option value="">すべて</option>'+Object.entries(SRC).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
+$("#maker").innerHTML='<option value="">すべて</option>'+Object.entries(SRC).filter(([k])=>k!="I").map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 const card=x=>`<article class="card" style="--c:${COL[x.cat]}"><div class="ph${x.img?"":" bar"}"><button class="getbtn" aria-pressed="${got.has(wkey(x))}" data-got="${esc(wkey(x))}">${got.has(wkey(x))?"✓ ゲット済み":"ゲット"}</button><button class="heart" aria-pressed="${wish.has(wkey(x))}" aria-label="欲しいものリストに追加" data-wish="${esc(wkey(x))}"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.4 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.6 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>${x.img?`<img src="${x.img}" alt="${esc(x.name)}" loading="lazy">`:``}</div><div class="body">${x._why?`<span class="why">${esc(x._why)}</span>`:""}<span class="cat">${x.cat}</span><div class="name">${esc(x.name)}</div><div class="when">${x.date}・${x.mk?esc(x.mk):SRC[x.src]}</div><div class="foot">${x.price?`<span class="price">${x.price}<small> 円</small></span>`:`<span class="price"><small>価格はリンク先</small></span>`}<span class="st ${x.st}">${{新:"NEW",再:"再入荷",限:"限定"}[x.st]}</span></div><a class="go" href="${x.url}" target="_blank" rel="noopener">${SRCBTN[x.src]}で詳細を見る</a></div></article>`;
 let LIMIT=120;let showTotal=false;let recOn=false;
