@@ -8,7 +8,7 @@ seen={norm(x['name']) for x in items}
 if os.path.exists('reports.json'):
     for r in json.load(open('reports.json')):
         if norm(r['name']) not in seen: items.append(r);seen.add(norm(r['name']))
-rows=[[x['src'],x['date'],x['key'],x['name'],x['price'],x['st'],x['url'],'',x.get('mk','')] for x in items]
+rows=[[x['src'],x['date'],x['key'],x['name'],x['price'],x['st'],x['url'],x.get('img',''),x.get('mk','')] for x in items]
 t=open('scripts/template.html',encoding='utf8').read()
 t=t.replace('__DATA__',json.dumps(rows,ensure_ascii=False,separators=(',',':'))).replace('__DATE__',f'（{today.year}年{today.month}月{today.day}日時点）')
 open('index.html','w',encoding='utf8').write(t)
