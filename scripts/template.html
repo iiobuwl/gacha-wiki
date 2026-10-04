@@ -56,6 +56,7 @@ input,select{font:inherit;font-size:.95rem;color:var(--fg);background:var(--bg);
 .price small{font-size:.72rem;font-weight:400;color:var(--muted)}
 .st{font-size:.68rem;font-weight:700;border-radius:999px;padding:2px 8px;color:#fff}
 .st.新{background:var(--pink)}.st.再{background:var(--green)}.st.限{background:var(--orange)}
+.tags{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}.rel{font-size:.68rem;font-weight:700;border-radius:999px;padding:2px 8px;white-space:nowrap}.rel.on{color:var(--blue);background:color-mix(in srgb,var(--blue) 14%,transparent)}.rel.soon{color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
 .go{display:block;text-align:center;margin-top:10px;font:700 .85rem var(--font);color:#fff;background:var(--blue);border-radius:999px;padding:9px;text-decoration:none}
 .go:hover{filter:brightness(1.08)}
 .group{margin-top:36px}
@@ -337,6 +338,9 @@ const ITEMS=DATA.map(([s,d,k,n,p,st,u,im,mk],i)=>({id:i,src:s,date:d,key:k,name:
 const CATS=[...new Set(ITEMS.map(x=>x.cat))].sort((a,b)=>ITEMS.filter(x=>x.cat==b).length-ITEMS.filter(x=>x.cat==a).length);
 const COL=Object.fromEntries([...RULES.map(r=>r[0]),"オリジナル・その他"].map((c,i)=>[c,PAL[i%PAL.length]]));
 const _t=new Date(),UPKEY=`${_t.getFullYear()}-${String(_t.getMonth()+1).padStart(2,"0")}`;
+const relOf=x=>{const m=/^(\d{4})-(\d{2})-(\d)$/.exec(x.key);if(!m||+m[1]<2000||x.date=="未定")return"";const w=+m[3],j=/(上|中|下)旬/.exec(x.date),d=j?{上:1,中:11,下:21}[j[1]]:w>=1&&w<=5?(w-1)*7+1:1;return new Date(+m[1],+m[2]-1,d)<=_t?"on":"soon"};
+const dateOf=x=>{const y=/^(\d{4})-/.exec(x.key);return y&&+y[1]>=2000&&!/^\d{4}年/.test(x.date)&&x.date!="未定"?`${y[1]}年${x.date}`:x.date};
+const relTag=x=>{const r=relOf(x);return r?`<span class="rel ${r}">${r=="on"?"発売中":"発売予定"}</span>`:""};
 const PERIODS=[...new Map(ITEMS.map(x=>[x.key,x.date])).entries()].sort();
 const $=s=>document.querySelector(s);
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
@@ -382,7 +386,7 @@ let selCats=new Set(),tab=load("gacha-tab","all");if(tab=="rec")tab="all";
 $("#period").innerHTML='<option value="">すべて</option><option value="up">今月以降に発売</option>'+PERIODS.map(([k,d])=>`<option value="${k}">${d}</option>`).join("");
 $("#maker").innerHTML='<option value="">すべて</option>'+Object.entries(SRC).filter(([k])=>k!="I").map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
-const card=x=>`<article class="card" style="--c:${COL[x.cat]}"><div class="ph${x.img?"":" bar"}"><button class="getbtn" aria-pressed="${got.has(wkey(x))}" data-got="${esc(wkey(x))}">${got.has(wkey(x))?"✓ ゲット済み":"ゲット"}</button><button class="heart" aria-pressed="${wish.has(wkey(x))}" aria-label="欲しいものリストに追加" data-wish="${esc(wkey(x))}"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.4 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.6 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>${x.img?`<img src="${esc(x.img)}" alt="${esc(x.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'noimg',textContent:'画像を表示できません'}))">`:``}</div><div class="body">${x._why?`<span class="why">${esc(x._why)}</span>`:""}<span class="cat">${x.cat}</span><div class="name">${esc(x.name)}</div><div class="when">${x.date}・${x.mk?esc(x.mk):SRC[x.src]}</div><div class="foot">${x.price?`<span class="price">${x.price}<small> 円</small></span>`:`<span class="price"><small>価格はリンク先</small></span>`}<span class="st ${x.st}">${{新:"NEW",再:"再入荷",限:"限定"}[x.st]}</span></div><a class="go" href="${x.url}" target="_blank" rel="noopener">${SRCBTN[x.src]}で詳細を見る</a></div></article>`;
+const card=x=>`<article class="card" style="--c:${COL[x.cat]}"><div class="ph${x.img?"":" bar"}"><button class="getbtn" aria-pressed="${got.has(wkey(x))}" data-got="${esc(wkey(x))}">${got.has(wkey(x))?"✓ ゲット済み":"ゲット"}</button><button class="heart" aria-pressed="${wish.has(wkey(x))}" aria-label="欲しいものリストに追加" data-wish="${esc(wkey(x))}"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.4 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.6 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>${x.img?`<img src="${esc(x.img)}" alt="${esc(x.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'noimg',textContent:'画像を表示できません'}))">`:``}</div><div class="body">${x._why?`<span class="why">${esc(x._why)}</span>`:""}<span class="cat">${x.cat}</span><div class="name">${esc(x.name)}</div><div class="when">${dateOf(x)}・${x.mk?esc(x.mk):SRC[x.src]}</div><div class="foot">${x.price?`<span class="price">${x.price}<small> 円</small></span>`:`<span class="price"><small>価格はリンク先</small></span>`}<span class="tags">${relTag(x)}<span class="st ${x.st}">${{新:"NEW",再:"再入荷",限:"限定"}[x.st]}</span></span></div><a class="go" href="${x.url}" target="_blank" rel="noopener">${SRCBTN[x.src]}で詳細を見る</a></div></article>`;
 let LIMIT=120;let showTotal=false;let recOn=false;
 const grid=r=>r.length?`<div class="grid">${r.slice(0,LIMIT).map(card).join("")}</div>`+(r.length>LIMIT?`<div style="text-align:center;margin-top:24px"><button class="more" data-moregrid="1">もっと見る（残り${r.length-LIMIT}件）</button></div>`:""):'<div class="empty">該当するガチャがありません。</div>';
 const byDate=(a,b)=>a.key.localeCompare(b.key)||a.id-b.id;
@@ -410,7 +414,7 @@ function render(){
   const total=g.reduce((a,x)=>a+(x.price||0),0);
   const head=`<div class="coll-head"><b>${g.length}</b><span>PIECES COLLECTED</span></div><div class="spend"><span class="lbl">累計の使用金額</span>${showTotal?`<b>${total.toLocaleString()}<small> 円</small></b>`:`<b class="mask">••••• <small>円</small></b>`}<button class="link" data-total="1" aria-pressed="${showTotal}">${showTotal?"隠す":"表示する"}</button></div>`;
   const cs=CATS.filter(c=>g.some(x=>x.cat==c));
-  $("#list").innerHTML=head+cs.map(c=>{const r=g.filter(x=>x.cat==c);return`<section class="gl" style="--c:${colOf(c)}"><h3><i></i>${esc(c)}<small>${r.length}</small></h3><ul>${r.map(x=>`<li><a href="${x.url}" target="_blank" rel="noopener"><span class="gn">${esc(x.name)}</span><span class="gm">${x.date}・${x.mk?esc(x.mk):SRC[x.src]}${x.price?`・${x.price}円`:""}</span></a><button class="gx" data-got="${esc(wkey(x))}" aria-label="ゲットを取り消す">✓</button></li>`).join("")}</ul></section>`}).join("");
+  $("#list").innerHTML=head+cs.map(c=>{const r=g.filter(x=>x.cat==c);return`<section class="gl" style="--c:${colOf(c)}"><h3><i></i>${esc(c)}<small>${r.length}</small></h3><ul>${r.map(x=>`<li><a href="${x.url}" target="_blank" rel="noopener"><span class="gn">${esc(x.name)}</span><span class="gm">${dateOf(x)}・${x.mk?esc(x.mk):SRC[x.src]}${x.price?`・${x.price}円`:""}</span></a><button class="gx" data-got="${esc(wkey(x))}" aria-label="ゲットを取り消す">✓</button></li>`).join("")}</ul></section>`}).join("");
   return}
  if(tab=="fav"){const w=ITEMS.filter(x=>wish.has(wkey(x))).sort(byDate);
   const wc=CATS.filter(c=>w.some(x=>x.cat==c));for(const c of [...wishSel])if(!wc.includes(c))wishSel.delete(c);
