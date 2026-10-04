@@ -1,7 +1,7 @@
 # 承認済みのユーザー報告をNotionから取り込む（NOTION_TOKEN が無ければ何もしない）
 import os,json,urllib.request,datetime
 TOKEN=os.environ.get("NOTION_TOKEN","").strip()
-DS="ca2950f2-0d99-47d5-8b76-dd2186285030"
+DS="9b3b56fb6b8e421690c61aaea633ef04"  # データベースID（2022-06-28 版APIで使う）
 H={"Authorization":"Bearer "+TOKEN,"Notion-Version":"2022-06-28","Content-Type":"application/json"}
 def req(method,url,body=None):
     r=urllib.request.Request(url,data=json.dumps(body).encode() if body is not None else None,headers=H,method=method)
@@ -23,7 +23,7 @@ def main():
     out=[]
     for pg in rows:
         P=pg["properties"]
-        name=txt(P.get("確定_商品名")) or txt(P.get("商品名"))
+        name=txt(P.get("確定_商品名")) or txt(P.get("商品名")) or txt(P.get("ガチャの名前"))
         if not name:continue
         d=(P.get("確定_発売日",{}).get("date") or {}).get("start")
         if d:
